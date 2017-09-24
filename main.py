@@ -12,7 +12,7 @@ class PongApp(App):
 
     def build(self):
         game = PongGame()
-        game.serve_ball()
+        game.serve_ball(angle=0)
         Clock.schedule_interval(game.update, 1.0/60.0)
         return game
 
@@ -48,20 +48,21 @@ class PongGame(Widget):
             if self.ball.x > self.width:
                 self._player1_scored()
 
-    def serve_ball(self, velocity=(4, 0)):
+    def serve_ball(self, velocity=(4, 0), angle=None):
         self.ball.center = self.center
-        self.ball.velocity = velocity
+        angle = randint(0, 60) if angle is None else angle
+        self.ball.velocity = Vector(velocity).rotate(angle)
         self._waiting_for_new_ball = False
 
     def _player1_scored(self):
         self._waiting_for_new_ball = True
         self.player1.score += 1
-        Clock.schedule_once(lambda _ : self.serve_ball(velocity=(-4, 0)), self.reserve_delay)
+        Clock.schedule_once(lambda _: self.serve_ball(velocity=(-4, 0)), self.reserve_delay)
 
     def _player2_scored(self):
         self._waiting_for_new_ball = True
         self.player2.score += 1
-        Clock.schedule_once(lambda _ : self.serve_ball(velocity=(4, 0)), self.reserve_delay)
+        Clock.schedule_once(lambda _: self.serve_ball(velocity=(4, 0)), self.reserve_delay)
 
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
