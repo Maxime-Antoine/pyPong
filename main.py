@@ -4,6 +4,7 @@ from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty
 from kivy.vector import Vector
 from kivy.clock import Clock
+from kivy.core.window import Window
 
 
 class PongApp(App):
@@ -16,9 +17,15 @@ class PongApp(App):
 
 
 class PongGame(Widget):
+
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super(PongGame, self).__init__(**kwargs)
+        self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
+        self._keyboard.bind(on_key_down=self._on_keyboard_down)
 
     def update(self, _):
         self.ball.move()
@@ -43,11 +50,20 @@ class PongGame(Widget):
         self.ball.center = self.center
         self.ball.velocity = velocity
 
-    def on_touch_move(self, touch):
-        if touch.x < self.width / 3:
-            self.player1.center_y = touch.y
-        if touch.x > self.width - self.width / 3:
-            self.player2.center_y = touch.y
+    def _keyboard_closed(self):
+        self._keyboard.unbind(on_key_down=self._on_keyboard_down)
+        self._keyboard = None
+
+    def _on_keyboard_down(self, keyboard, keycode, text, modifiers):
+        if keycode[1] == 'q':
+            self.player1.center_y += 30
+        if keycode[1] == 'a':
+            self.player1.center_y -= 30
+        if keycode[1] == 'up':
+            self.player2.center_y += 30
+        if keycode[1] == 'down':
+            self.player2.center_y -= 30
+        return True
 
 
 class PongBall(Widget):
