@@ -18,7 +18,7 @@ class PongApp(App):
 
 class PongGame(Widget):
 
-    reserve_delay = 1 # sec
+    re_serve_delay = 1 # sec
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
@@ -56,12 +56,12 @@ class PongGame(Widget):
     def _player1_scored(self):
         self._waiting_for_new_ball = True
         self.player1.score += 1
-        Clock.schedule_once(lambda _: self.serve_ball(velocity=(-4, 0)), self.reserve_delay)
+        Clock.schedule_once(lambda _: self.serve_ball(velocity=(-4, 0)), self.re_serve_delay)
 
     def _player2_scored(self):
         self._waiting_for_new_ball = True
         self.player2.score += 1
-        Clock.schedule_once(lambda _: self.serve_ball(velocity=(4, 0)), self.reserve_delay)
+        Clock.schedule_once(lambda _: self.serve_ball(velocity=(4, 0)), self.re_serve_delay)
 
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
