@@ -1,4 +1,5 @@
 from random import randint
+from functools import partial
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.properties import NumericProperty, ReferenceListProperty, ObjectProperty
@@ -18,6 +19,7 @@ class PongApp(App):
 
 class PongGame(Widget):
 
+    reserve_delay = 1 # sec
     ball = ObjectProperty(None)
     player1 = ObjectProperty(None)
     player2 = ObjectProperty(None)
@@ -26,8 +28,9 @@ class PongGame(Widget):
         super(PongGame, self).__init__(**kwargs)
         self._keyboard = Window.request_keyboard(self._keyboard_closed, self)
         self._keyboard.bind(on_key_down=self._on_keyboard_down)
+        self._waiting_for_new_ball = False
 
-    def update(self, _):
+    def update(self, dt):
         self.ball.move()
 
         # bounce off top and bottom
@@ -39,16 +42,26 @@ class PongGame(Widget):
         self.player2.bounce_ball(self.ball)
 
         # went of to a side to score point?
-        if self.ball.x < 0:
-            self.player2.score += 1
-            self.serve_ball(velocity=(4, 0))
-        if self.ball.x > self.width:
-            self.player1.score += 1
-            self.serve_ball(velocity=(-4, 0))
+        if not self._waiting_for_new_ball:
+            if self.ball.x < 0:
+                self._player2_scored()
+            if self.ball.x > self.width:
+                self._player1_scored()
 
     def serve_ball(self, velocity=(4, 0)):
         self.ball.center = self.center
         self.ball.velocity = velocity
+        self._waiting_for_new_ball = False
+
+    def _player1_scored(self):
+        self._waiting_for_new_ball = True
+        self.player1.score += 1
+        Clock.schedule_once(lambda _ : self.serve_ball(velocity=(-4, 0)), self.reserve_delay)
+
+    def _player2_scored(self):
+        self._waiting_for_new_ball = True
+        self.player2.score += 1
+        Clock.schedule_once(lambda _ : self.serve_ball(velocity=(4, 0)), self.reserve_delay)
 
     def _keyboard_closed(self):
         self._keyboard.unbind(on_key_down=self._on_keyboard_down)
